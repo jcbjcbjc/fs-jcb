@@ -1,0 +1,14 @@
+[package]
+name = "bfs-jcb"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fs-jcb = { path = "../fs-jcb" }
+static_assertions = "1.1"
+spin = "0.9"
+log = "0.4"
+bitvec="1.0.1"
+

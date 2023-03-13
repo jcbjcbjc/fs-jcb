@@ -1,0 +1,12 @@
+[package]
+name = "mountfs-jcb"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+fs-jcb={path="../fs-jcb"}
+spin = "0.9"
+log = "0.4"
+lazy_static = { version = "1.4", features = ["spin_no_std"] }
