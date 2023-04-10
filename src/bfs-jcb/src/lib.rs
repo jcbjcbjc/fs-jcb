@@ -1,9 +1,15 @@
+
+#![no_std]
+#![no_main]
+
+extern crate alloc;
+
 mod inode_impl;
 mod structs;
 
-use std::collections::BTreeMap;
-use std::sync::Weak;
-use std::sync::Arc;
+use core::collections::BTreeMap;
+use core::sync::Weak;
+use core::sync::Arc;
 use fs_jcb::{FileSystem, Inode};
 use alloc::collections::BTreeMap;
 use alloc::sync::{Arc, Weak};
@@ -73,6 +79,7 @@ impl JCBFileSystem{
     pub fn open(
         block_device:Arc<dyn Device>
     )->Arc<Mutex<Self>>{
+
 
     }
 

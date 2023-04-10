@@ -1,8 +1,8 @@
 use alloc::vec::Vec;
 use core::fmt::{Debug, Error, Formatter};
-use std::fs::FileType;
 use bitvec::order::Lsb0;
 use bitvec::vec::BitVec;
+use fs_jcb::FileType;
 use crate::util::Dirty;
 use crate::vfs::{FileType, Timespec};
 use alloc::str;

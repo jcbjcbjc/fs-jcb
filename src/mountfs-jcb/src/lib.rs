@@ -10,9 +10,9 @@ use alloc::{
     sync::{Arc, Weak},
 };
 use core::{any::Any, future::Future, pin::Pin};
-use fs_jcb::{FileSystem, FileType, Inode, Result};
+use fs_jcb::{FileSystem, FileType, Inode, MetaData, Result};
 use rcore_fs::vfs::*;
-use spin::RwLock;
+use spin::{Mutex, RwLock};
 
 pub type InodeId=usize;
 
@@ -25,7 +25,10 @@ pub struct MountFs{
 
 impl FileSystem for MountFs{
     fn root_inode(&self) -> Arc<dyn Inode> {
-        todo!()
+        match &self.self_mountpoint{
+            Some(inode)=>inode.fs.root_inode(),
+            None=>self.mountpoint_root_inode()
+        }
     }
 }
 
@@ -45,6 +48,7 @@ impl MountFs{
             Arc::from_raw(ptr)
         }
     }
+    /// return the root_inode of the fs
     fn mountpoint_root_inode(&self) ->Arc<MNode>{
         MNode{
             inner: self.inner.root_inode(),
@@ -62,7 +66,7 @@ pub struct MNode{
 
 }
 impl MNode{
-    /// Wrap pure `INode` with `Arc<..>`.
+
     /// Used in constructors.
     fn wrap(self) -> Arc<Self> {
         // Create an Arc, make a Weak from it, then put it into the struct.
@@ -88,32 +92,37 @@ impl MNode{
         Ok(mount_fs)
     }
 
-    fn mount_root_inode(&self)->Option<Arc<MNode>>{
+    fn change_inode(&self)->Option<Arc<MNode>>{
         if let Some(fs)=self.fs.mount_points.read().get(&self.inner.metadata()?.inode_id){
-            Some(fs.root_inode())
+            Some(fs.mountpoint_root_inode())
         }else{
-            Some(self.fs.mountpoint_root_inode())
+            Some(self.self_ref.upgrade()?.clone())
         }
     }
-    fn is_mount_root_inode(&self)->bool{
-        self.fs.root_inode().metadata()?.inode_id==self.metadata()?
+    fn is_mountpoint_root_inode(&self)->bool{
+        self.fs.mountpoint_root_inode().metadata()?.inode_id==self.metadata()?.inode_id
     }
     fn find(&self,name:&str)->Result<Arc<MNode>>{
         match name{
             ".."=>{
-                let inner=self.inner.find(name)?;
-
-                if inner.metadata()?.inode_id==self.fs.inner.root_inode().metadata()?.inode_id{
-                    Ok(self.fs.root_inode())
-                }else{
-                    Ok(inner)
-                }
+               if self.is_mountpoint_root_inode(){
+                   match &self.fs.self_mountpoint{
+                       Some(inode)=>inode.inner.find(".."),
+                       None=>self.self_ref.upgrade().clone()
+                   }
+               }else {
+                   MNode{
+                       inner:self.inner.find("..")?,
+                       fs: self.fs.clone(),
+                       self_ref: Weak::default(),
+                   }.wrap()
+               }
             }
             "."|""=>{
                Ok(self.self_ref.upgrade()?.clone())
             }
             _=>{
-                let self_inode=self.mount_root_inode()?;
+                let self_inode=self.change_inode()?;
 
                 let m_node =MNode{
                     inner: Arc::new(self_inode.inner.find(name)?),

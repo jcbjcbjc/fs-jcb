@@ -26,6 +26,7 @@ pub trait BlockDevice: Send + Sync {
 }
 
 
+
 /// The error type for device.
 #[derive(Debug, PartialEq, Eq)]
 pub struct DevError;

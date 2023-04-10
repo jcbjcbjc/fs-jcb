@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::fs::FileType;
 use std::sync::Arc;
+use fs_jcb::{FileSystem, FileType, MetaData};
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::sync::Arc;
@@ -27,7 +28,7 @@ pub struct InodeImpl{
     cache_entrys:RwLock<BTreeMap<usize,DiskEntry>>
 }
 impl Inode for InodeImpl{
-    fn metadata(&self)->Result<MetaData>{
+    fn metadata(&self)->vfs::Result<MetaData>{
         let inode=self.disk_inode.read();
         let meta_data=MetaData{
               
@@ -35,7 +36,7 @@ impl Inode for InodeImpl{
         Ok(meta_data)
     }
 
-    fn set_metadata(&self)->Result<()>{
+    fn set_metadata(&self)->vfs::Result<()>{
         let inode=self.disk_inode.write();
         
 
@@ -80,11 +81,11 @@ impl Inode for InodeImpl{
         Ok(String::from(name.as_ref()))
     }
 
-    fn read_at(&self,offset:usize,buf:&mut [u8])->Result<usize>{Err(FsError::NotSupported)}
+    fn read_at(&self,offset:usize,buf:&mut [u8])->vfs::Result<usize>{Err(FsError::NotSupported)}
 
-    fn write_at(&self,offset:usize,buf:&[u8])->Result<usize>{Err(FsError::NotSupported)}
+    fn write_at(&self,offset:usize,buf:&[u8])->vfs::Result<usize>{Err(FsError::NotSupported)}
 
-    fn resize(&self)->Result<()>{
+    fn resize(&self)->vfs::Result<()>{
         Err(FsError::NotSupported)
     }
 

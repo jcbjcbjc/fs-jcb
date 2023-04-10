@@ -99,6 +99,18 @@ impl<T:BlockDevice> BlockCache<T>{
 }
 
 
+///detail information in the connection between device and cpu
+///for a device,if cpu wanna to read from or write to the device
+///read:
+/// cpu will send a io signal to the DMA module ,and make the process exit the cpu
+/// ,DMA module will transfer the data form disk to the cache in the kernel witch just called page cache like the follows,
+/// and DMA will cause a interrupt to awake the process ,and the process copy the kernel cache to the user space cache
+/// write:
+/// just like read,cpu will first copy user space cache to the kernel cache(page cache just like the follows),and then symbolise a dirty label,
+/// in the write_back process,cpu will send a io signal to the DMA module and make self exit the cpu ........
+///
+///
+
 impl<T:BlockDevice> BlockDevice for BlockCache<T>{
     const BLOCK_SIZE_LOG2: u8 = T::BLOCK_SIZE_LOG2;
 

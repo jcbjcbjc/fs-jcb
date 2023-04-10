@@ -2,8 +2,6 @@
 
 use core::any::Any;
 use core::str;
-
-
 use crate::block_device::BlockDevice;
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::result;
@@ -106,7 +104,6 @@ impl dyn FileSystem{
 
 }
 
-
 pub struct MetaData{
     pub size: usize,
     /// A file system-specific preferred I/O block size for this object.
@@ -120,15 +117,14 @@ pub struct MetaData{
     pub mtime: Timespec,
     /// Time of last change
     pub ctime: Timespec,
-
+    /// Device ID
     pub dev: usize,
-
+    /// inode id
     pub inode_id :usize,
-
+    /// file type
     pub type_: FileType,
-
+    /// permission
     pub permission:u16,
-
     /// User ID
     pub uid: usize,
     /// Group ID
