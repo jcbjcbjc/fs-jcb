@@ -96,6 +96,13 @@ impl<T:BlockDevice> BlockCache<T>{
         }
         Ok(())
     }
+    fn fill_unused(&self,block_id: BlockId,buf:&mut Buf)->Result<()>{
+        if let Some(BufStatus::Unused)=buf.buf_status{
+            self.device.read_at(block_id,&mut buf.content)?;
+            buf.buf_status=BufStatus::Valid(block_id);
+        }
+        Ok(())
+    }
 }
 
 
@@ -116,10 +123,11 @@ impl<T:BlockDevice> BlockDevice for BlockCache<T>{
 
     fn read_at(&self, block_id: BlockId, dst_buf: &mut [u8]) -> Result<()> {
         let mut buf=self.get_buf(block_id);
-        if let Some(BufStatus::Unused)=buf.buf_status{
-            buf.buf_status=BufStatus::Valid(block_id);
-            self.device.read_at(block_id, &mut buf.content)?;
-        }
+
+        // status: Dirty -> Vaild
+        self.write_back(&mut buf).expect("write back failure");
+        // status: Unused -> Vaild
+        self.fill_unused(block_id,&mut buf).expect("fill unused failure");
 
         let len=1<<T::BLOCK_SIZE_LOG2 as usize;
         dst_buf[..len].copy_from_slice(buf.content.as_slice());

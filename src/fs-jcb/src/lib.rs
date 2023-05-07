@@ -1,4 +1,5 @@
 #![feature(linked_list_remove)]
+#![feature(slice_pattern)]
 //!An easy file system isolated from the kernel
 #![no_std]
 #![no_std]

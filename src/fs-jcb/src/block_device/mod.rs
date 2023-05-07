@@ -1,6 +1,8 @@
 pub mod block_cache;
 
+use core::slice::SlicePattern;
 use crate::{util::*, vfs::Timespec};
+
 
 
 //pub mod std_impl;
@@ -23,6 +25,56 @@ pub trait BlockDevice: Send + Sync {
     fn read_at(&self, block_id: BlockId, buf: &mut [u8]) -> Result<()>;
     fn write_at(&self, block_id: BlockId, buf: &[u8]) -> Result<()>;
     fn sync(&self) -> Result<()>;
+}
+
+impl<T> Device for T
+where T:BlockDevice
+{
+    fn read_at(&self, offset: usize, buf: &mut [u8]) -> Result<usize> {
+        let iter=BlockIter{
+            begin: offset,
+            end: offset+buf.len(),
+            block_size_log2: T::BLOCK_SIZE_LOG2,
+        };
+
+        for range in iter{
+            let buf=&mut buf[range.origin_begin()-offset..range.origin_end()-offset];
+            if range.is_full() {
+                BlockDevice::read_at(self,range.block,buf)?;
+            }else{
+                let tmp=&mut [0u8;1<<T::BLOCK_SIZE_LOG2];
+                BlockDevice::read_at(self,range.block,tmp)?;
+                buf.copy_from_slice(tmp[range.begin..range.end].as_slice());
+            }
+        }
+        Ok(buf.len())
+    }
+
+    fn write_at(&self, offset: usize, buf: &[u8]) -> Result<usize> {
+        let iter=BlockIter{
+            begin: offset,
+            end: offset+buf.len(),
+            block_size_log2: T::BLOCK_SIZE_LOG2,
+        };
+
+        for range in iter{
+            let buf=&mut buf[range.origin_begin()-offset..range.origin_end()-offset];
+            if range.is_full() {
+                BlockDevice::write_at(self,range.block,buf)?;
+            }else{
+                let tmp=&mut [0u8;1<<T::BLOCK_SIZE_LOG2];
+
+                tmp[range.begin..range.end].copy_from_slice(buf.as_slice());
+
+                BlockDevice::write_at(self,range.block,tmp)?;
+            }
+        }
+        Ok(buf.len())
+    }
+
+    fn sync(&self) -> Result<()> {
+        BlockDevice::sync(self)
+    }
 }
 
 
