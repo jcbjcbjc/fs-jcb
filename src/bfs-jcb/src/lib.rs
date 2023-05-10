@@ -3,6 +3,7 @@
 #![no_main]
 
 extern crate alloc;
+extern crate fs_jcb;
 
 mod inode_impl;
 mod structs;
@@ -10,23 +11,21 @@ mod structs;
 use core::collections::BTreeMap;
 use core::sync::Weak;
 use core::sync::Arc;
-use fs_jcb::{FileSystem, Inode};
 use alloc::collections::BTreeMap;
 use alloc::sync::{Arc, Weak};
 use alloc::vec::Vec;
+use fs_jcb::{Device, Dirty, uninit_memory};
 use spin::{Mutex, RwLock};
 use crate::bfs::inode_impl::InodeImpl;
-
 use crate::bfs::structs::{Alloc, AsBuf, BLKSIZE, BlockId, DiskINode, FreeMap, InodeId, SuperBlock};
 use crate::block_device::{BlockDevice, Device};
 use crate::inode_impl::InodeImpl;
 use crate::structs::{AsBuf, BLKSIZE, BlockId, DiskINode, FreeMap, InodeId, SuperBlock};
 use crate::util::{Dirty, uninit_memory};
-use crate::vfs;
-use crate::vfs::{FileSystem, FsError, Inode};
+use crate::fs_jcb::{Result,FileSystem,FileType,Inode,BlockDevice};
 
 trait DeviceExt: Device {
-    fn read_block(&self, id: BlockId, offset: usize, buf: &mut [u8]) -> vfs::Result<()> {
+    fn read_block(&self, id: BlockId, offset: usize, buf: &mut [u8]) -> Result<()> {
         debug_assert!(offset + buf.len() <= BLKSIZE);
         match self.read_at(id * BLKSIZE + offset, buf) {
             Ok(len) if len == buf.len() => Ok(()),

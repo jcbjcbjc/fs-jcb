@@ -4,7 +4,6 @@ use bitvec::order::Lsb0;
 use bitvec::vec::BitVec;
 use fs_jcb::FileType;
 use crate::util::Dirty;
-use crate::vfs::{FileType, Timespec};
 use alloc::str;
 
 #[derive(Debug,Clone)]

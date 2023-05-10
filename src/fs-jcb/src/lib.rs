@@ -9,8 +9,9 @@ extern crate alloc;
 mod block_device;
 mod vfs;
 mod util;
-pub use vfs::{Inode,FileSystem,Result,FileType,MetaData};
-pub use block_device::BlockDevice;
+pub use vfs::{Inode,FileSystem,Result,FileType,MetaData,De};
+pub use block_device::{BlockDevice,Device};
+pub use util::{BlockIter,BlockRange,Dirty,uninit_memory};
 
 
 
